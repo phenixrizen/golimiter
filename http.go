@@ -1,11 +1,16 @@
 package golimiter
 
 import (
+	"fmt"
+	"math"
 	"net/http"
 	"time"
 
 	"golang.org/x/time/rate"
 )
+
+// RetryAfterHeader is the header key to set
+var RetryAfterHeader = "Retry-After"
 
 // visitor has a individual rate limiter and the last time seen.
 type visitor struct {
@@ -21,6 +26,8 @@ func (l *Limiter) LimitHTTP(next http.Handler) http.Handler {
 	}
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if l.Allow() == false {
+			delaySeconds := int64(math.Ceil(l.Reserve().Delay().Seconds())) + 1
+			w.Header().Add(RetryAfterHeader, fmt.Sprintf("%d", delaySeconds))
 			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
 			return
 		}
@@ -37,6 +44,8 @@ func (l *Limiter) LimitHTTPByIP(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		limiter := l.getVisitor(r.RemoteAddr)
 		if limiter.Allow() == false {
+			delaySeconds := int64(math.Ceil(l.Reserve().Delay().Seconds())) + 1
+			w.Header().Add(RetryAfterHeader, fmt.Sprintf("%d", delaySeconds))
 			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
 			return
 		}
@@ -55,6 +64,8 @@ func (l *Limiter) LimitHTTPByHeader(key string, next http.Handler) http.Handler 
 		header := r.Header.Get(key)
 		limiter := l.getVisitor(header)
 		if limiter.Allow() == false {
+			delaySeconds := int64(math.Ceil(l.Reserve().Delay().Seconds())) + 1
+			w.Header().Add(RetryAfterHeader, fmt.Sprintf("%d", delaySeconds))
 			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
 			return
 		}

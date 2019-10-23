@@ -1,7 +1,6 @@
 package golimiter
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 	"time"
@@ -27,8 +26,7 @@ func TestLimitHTTP(t *testing.T) {
 	tm := time.Now()
 	for i := 0; i < 10; i++ {
 		resp, err := client.Get("http://localhost:42280/")
-		since := time.Since(tm)
-		fmt.Println(resp.StatusCode, since)
+		t.Log(resp.StatusCode, time.Since(tm))
 		if resp.StatusCode == http.StatusOK {
 			assert.Nil(err, "error should be nil")
 			assert.NotNil(resp, "resp should not be empty")
@@ -38,6 +36,27 @@ func TestLimitHTTP(t *testing.T) {
 			assert.Equal(http.StatusTooManyRequests, resp.StatusCode, "error response status code should be 429 Too Many Requests")
 		}
 	}
+
+	time.Sleep(1500 * time.Millisecond)
+
+	t.Log("Testing Reservation")
+	tm = time.Now()
+	var res *Reservation
+	for i := 0; i < 10; i++ {
+		resp, err := client.Get("http://localhost:42280/")
+		t.Log(resp.StatusCode, time.Since(tm))
+		if resp.StatusCode == http.StatusOK {
+			assert.Nil(err, "error should be nil")
+			assert.NotNil(resp, "resp should not be empty")
+		} else {
+			res = limiter.Reserve()
+			break
+		}
+	}
+	time.Sleep(res.Delay())
+	resp, err := client.Get("http://localhost:42280/")
+	assert.Nil(err, "error should be nil")
+	assert.NotNil(resp, "resp should not be empty")
 }
 
 func okHandler(w http.ResponseWriter, r *http.Request) {

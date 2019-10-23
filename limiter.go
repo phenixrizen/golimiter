@@ -23,6 +23,10 @@ type Limiter struct {
 	cleanupInterval time.Duration
 }
 
+type Reservation struct {
+	*rate.Reservation
+}
+
 // New returns a new limiter that will limit http requests
 func New(r float64, b int) *Limiter {
 	limiter := &Limiter{
@@ -57,18 +61,20 @@ func (l *Limiter) Limit() float64 {
 }
 
 // Reserve is shorthand for ReserveN(time.Now(), 1).
-func (l *Limiter) Reserve() *rate.Reservation {
-	return l.limiter.Reserve()
+func (l *Limiter) Reserve() *Reservation {
+	r := l.limiter.Reserve()
+	return &Reservation{Reservation: r}
 }
 
 // ReserveN  returns a Reservation that indicates how long the caller
 // must wait before n events happen. The Limiter takes this Reservation
 // into account when allowing future events. ReserveN returns false if
 // n exceeds the Limiter's burst size.
-func (l *Limiter) ReserveN(ctx context.Context, t time.Time, n int) *rate.Reservation {
+func (l *Limiter) ReserveN(ctx context.Context, t time.Time, n int) *Reservation {
 	_, cancel := context.WithCancel(ctx)
 	defer cancel()
-	return l.limiter.ReserveN(t, n)
+	r := l.limiter.ReserveN(t, n)
+	return &Reservation{Reservation: r}
 }
 
 // SetBurst is shorthand for SetBurstAt(time.Now(), newBurst).

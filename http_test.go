@@ -26,13 +26,12 @@ func TestLimitHTTP(t *testing.T) {
 	tm := time.Now()
 	for i := 0; i < 10; i++ {
 		resp, err := client.Get("http://localhost:42280/")
+		assert.NotNil(resp, "resp should not be empty")
 		t.Log(resp.StatusCode, time.Since(tm))
 		if resp.StatusCode == http.StatusOK {
 			assert.Nil(err, "error should be nil")
-			assert.NotNil(resp, "resp should not be empty")
 		} else {
 			assert.Nil(err, "error should be nil")
-			assert.NotNil(resp, "error response should not be nil")
 			assert.Equal(http.StatusTooManyRequests, resp.StatusCode, "error response status code should be 429 Too Many Requests")
 		}
 	}
@@ -44,10 +43,10 @@ func TestLimitHTTP(t *testing.T) {
 	var res *Reservation
 	for i := 0; i < 10; i++ {
 		resp, err := client.Get("http://localhost:42280/")
+		assert.NotNil(resp, "resp should not be empty")
 		t.Log(resp.StatusCode, time.Since(tm))
 		if resp.StatusCode == http.StatusOK {
 			assert.Nil(err, "error should be nil")
-			assert.NotNil(resp, "resp should not be empty")
 		} else {
 			res = limiter.Reserve()
 			break

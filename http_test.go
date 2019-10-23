@@ -19,6 +19,8 @@ func TestLimitHTTP(t *testing.T) {
 	// wrap the servemux with the limiter middleware.
 	go http.ListenAndServe(":42280", limiter.LimitHTTP(mux))
 
+	time.Sleep(1 * time.Millisecond)
+
 	client := &http.Client{
 		Timeout: 5 * time.Second,
 	}

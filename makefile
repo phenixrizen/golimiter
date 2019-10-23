@@ -8,6 +8,8 @@ IP := $(shell hostname -I | sed 's/ //')
 
 all: deps test ## Make all
 
+travis: deps cover coveralls ## Make travis-ci
+
 deps : ## Go modules download
 	@go mod download
 
@@ -17,7 +19,13 @@ compiletest: ## Compiles test
 test: ## Tests the code
 	@go test -v ./... -count=1
 
-cover: ## Generates test coverage report
+cover: ## Create test coverage report
+	@go test -v -covermode=count -coverprofile=coverage.out
+
+coveralls: ## Push coverage report to coveralls
+	@$HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+
+coverreport: ## Generates test coverage report
 	@echo "==> Running go test coverage tools: "
 	@echo " "
 	@go test -v -coverprofile /tmp/${PKG_NAME}.coverage.out ./... || { echo ""; echo "======> Go Tests Failed"; return 1; }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/phenixrizen/golimiter"
@@ -13,10 +12,8 @@ func main() {
 
 	limiter := golimiter.New(1, 2)
 
-	ctx := context.Background()
-
 	// Wrap the servemux with the limit middleware.
-	http.ListenAndServe(":4000", limiter.LimitHTTP(ctx, mux))
+	http.ListenAndServe(":42280", limiter.LimitHTTP(mux))
 }
 
 func okHandler(w http.ResponseWriter, r *http.Request) {

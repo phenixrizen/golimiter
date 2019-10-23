@@ -23,7 +23,7 @@ cover: ## Create test coverage report
 	@go test -v -covermode=count -coverprofile=coverage.out
 
 coveralls: ## Push coverage report to coveralls
-	@$HOME/gopath/bin/goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
+	@goveralls -coverprofile=coverage.out -service=travis-ci -repotoken $COVERALLS_TOKEN
 
 coverreport: ## Generates test coverage report
 	@echo "==> Running go test coverage tools: "
